@@ -1,0 +1,13 @@
+
+关于socket阻塞及信号
+1. 服务端socket一般是阻塞模式，accept 会一直等待有连接过来。当进程要退出时，close(listen_socket) 并不能让accept返回，可以用
+     select listen_socket，加上超时时间，select会返回，要么超时，要么有连接过来，需要accept.
+   也可以用匿名pipe,pipe[1]写入,pipe[0]读取,select加上pipe[0]检测.当进程退出时,往pipe[1]写入数据.
+   另外:退出操作时,设置退出标志,往pipe[1]写入数据触发,不要close(listen_socket),不要设置listen_socket = -1, 可能导致select没响应.
+
+2. 进程唤起，现在都用 system 调用。进程退出，现在直接 killall 9 xxx.
+     #define	SIGKILL		9	/* Kill, unblockable (POSIX).  */
+     #define	SIGTERM		15	/* Termination (ANSI).  */
+   这2个信号不能被捕获，所以被杀死的进程可能没有机会做资源释放操作。所以建议发送 32-64 之间的信号给进程。进程中依据该信号做退出操作。
+
+3. 另外linux不同的发现版本,signal信号定义不一样. killall -s xxx   xxx 建议用 32-64 之间的常量数值   

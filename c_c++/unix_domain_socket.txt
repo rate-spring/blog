@@ -1,0 +1,37 @@
+
+关于UNIX域套接字 (https://blog.csdn.net/qq_44045338/article/details/104999043)
+1. 类似网络通讯协议,但没有网络协议的包头信息，在单机内做进程间通讯，效率很高
+2. UNIX域套接字 命名有2种类型：基于文件路径的命名；基于抽象空间命名
+3. 基于文件路径命名，如： /tmp/socket 以tcp为例：
+   服务端：
+   1) 必须对文件路径具备写权限，实际在系统的/tmp目录生成一个 socket文件，其权限为： srwxr-xr-x
+   2) 使用前先 unlink,否则会报错误： cannot bind server socket: Address already in use。
+      防止初始化时bind错误，可以在服务端程序退出做 unlink 操作
+   3) bind成功后，可以修改文件权限如：chmod a+w /tmp/socket，权限为：srwxrwxrwx
+      系统切换用户或者ssh以另外一个用户登录，执行 rm socket, 提示 rm: 无法删除'socket': 不允许的操作
+      所以程序中使用该命名方式的套接字，程序退出注意删除该文件，否则其他用户登录时，unlink不了，没办法做进程间通讯。
+4. 基于抽象空间命名
+   一般定义为：@/xxxx/socket   @符号开头，实际也不存在 /xxxxxxxxxxxx/socket 路径跟文件。
+   在bind时，地址的设置如：
+
+   服务端：
+   #define UNIX_DOMAIN "@/xxxxxxxxxxxx/socket"
+
+   struct sockaddr_un srv_addr;
+
+   srv_addr.sun_family=AF_UNIX;
+   strncpy(srv_addr.sun_path,UNIX_DOMAIN,sizeof(srv_addr.sun_path)-1);
+   srv_addr.sun_path[0] = 0;
+   int srv_addr_len = strlen(UNIX_DOMAIN) + sizeof(sockaddr_un::sun_family);
+
+   ret=bind(listen_fd,(struct sockaddr*)&srv_addr,srv_addr_len/×sizeof(srv_addr)×/);
+
+   系统使用命令行查看  netstat -lp，可以看到 path 是：
+   unix  2      [ ACC ]     STREAM     LISTENING     1819788415 10699/sockettest_se  @/xxxxxxxxxxxx/socket
+
+   客户端使用同一方式设置地址即可。
+
+   服务端进程退出时，该地址失效。系统切换用户或者ssh以另外一个用户登录，服务端启动不会有问题，当然@/xxxxxxxxxxxx/socket不能被占用。
+
+5. 如果考虑多个用户登录，使用同一个程序的情况，建议使用第二种命名方式。
+
