@@ -1,0 +1,7 @@
+
+一般.h中我们会使用宏定义. 在需要支持多个平台的情况下,一些宏定义由makefile中指定.
+其中 Makefile 写法:
+  CFLAGS:= -DPLATFORM_TYPE
+qt的.pro文件 写法：
+  DEFINES += PLATFORM_TYPE
+
