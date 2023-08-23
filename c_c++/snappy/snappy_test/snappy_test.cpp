@@ -12,7 +12,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	{
 		int buff_len = 10 * 1024 * 1024;
-		buff_len = 0;
+		//buff_len = 0;
 
 		unsigned char * buff = (unsigned char*) malloc(buff_len);
 		for(int i = 0; i < buff_len ; i++)
@@ -59,7 +59,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	{
 		int buff_len = 10 * 1024 * 1024;
-		buff_len = 0;
+		//buff_len = 0;
 
 		unsigned char * buff = (unsigned char*) malloc(buff_len);
 		for(int i = 0; i < buff_len ; i++)

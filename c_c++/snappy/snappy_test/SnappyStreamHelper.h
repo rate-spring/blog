@@ -11,6 +11,13 @@
 namespace SnappyStreamHelper
 {
 
+
+extern const char MAGIC_HEADER [8];
+extern const int DEFAULT_VERSION ;
+extern const int MININUM_COMPATIBLE_VERSION ;
+extern const int HEADER_LEN;
+extern const int DEFAULT_BLOCK_LEN ;
+
 long long get_now_time_in_ms();
 
 void write_fs(const char *path, unsigned char *data, int len);

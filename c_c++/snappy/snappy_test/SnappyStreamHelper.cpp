@@ -24,9 +24,10 @@ void write_fs(const char *path, unsigned char *data, int len)
 }
 
 
-const char MAGIC_HEADER [] = {-126, 'S', 'N', 'A', 'P', 'P', 'Y', 0};
+const char MAGIC_HEADER [8] = {-126, 'S', 'N', 'A', 'P', 'P', 'Y', 0};
 const int DEFAULT_VERSION = 1;
 const int MININUM_COMPATIBLE_VERSION = 1;
+const int HEADER_LEN = 16;
 const int DEFAULT_BLOCK_LEN = 32 * 1024;
 
 // 写入整形 4字节
