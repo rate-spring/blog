@@ -31,6 +31,8 @@ void SnappyOutputStream::write(unsigned char *data, int data_len)
 		// 获取一个分块
 		std::string str = this->str();
 
+		unsigned char * out = (unsigned char *) malloc(SnappyStreamHelper::DEFAULT_BLOCK_LEN + 1024 * 6);
+
 		while(str.size() >= SnappyStreamHelper::DEFAULT_BLOCK_LEN)
 		{
 			std::string block_data = str.substr(0,SnappyStreamHelper::DEFAULT_BLOCK_LEN);
@@ -40,7 +42,6 @@ void SnappyOutputStream::write(unsigned char *data, int data_len)
 			{
 				_writeHeader = true;
 
-				unsigned char out[16] = {0};
 				int pos = 0;
 				SnappyStreamHelper::write_header(out,pos);
 
@@ -48,13 +49,16 @@ void SnappyOutputStream::write(unsigned char *data, int data_len)
 			}
 
 			{
-				unsigned char out[38 * 1024] = {0};
 				int pos = 0;
 				SnappyStreamHelper::write_block(out,pos,(unsigned char*)block_data.c_str(),block_data.size());
 
 				_ostream->write((const char*)out,pos);
+
+				
 			}
 		}
+
+		free(out);
 
 		this->str(str);
 	}
@@ -68,6 +72,8 @@ void SnappyOutputStream::flush()
 
 	// 取所有数据 压缩
 	std::string str = this->str();
+
+	unsigned char * out = (unsigned char *) malloc(SnappyStreamHelper::DEFAULT_BLOCK_LEN + 1024 * 6);
 
 	while(str.size() > 0)
 	{
@@ -88,7 +94,6 @@ void SnappyOutputStream::flush()
 		{
 			_writeHeader = true;
 
-			unsigned char out[16] = {0};
 			int pos = 0;
 			SnappyStreamHelper::write_header(out,pos);
 
@@ -96,13 +101,14 @@ void SnappyOutputStream::flush()
 		}
 
 		{
-			unsigned char out[38 * 1024] = {0};
 			int pos = 0;
 			SnappyStreamHelper::write_block(out,pos,(unsigned char*)block_data.c_str(),block_data.size());
 
 			_ostream->write((const char*)out,pos);
 		}
 	}
+
+	free(out);
 
 	this->str(str);
 }

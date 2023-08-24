@@ -91,7 +91,7 @@ void write_block(unsigned char *out, int &pos, unsigned char *in, int len)
 	// len = 32K  
 	// 32 + source_len + source_len/6  38K
 	const int buff_len = DEFAULT_BLOCK_LEN + 1024 * 6;
-	char buff[buff_len] = {0};
+	char * buff = (char*) malloc(buff_len);
 	int buff_len2 = buff_len;
 
 	snappy::RawCompress((const char*)in,len,buff,(size_t*)&buff_len2);
@@ -101,13 +101,15 @@ void write_block(unsigned char *out, int &pos, unsigned char *in, int len)
 	write_int(out,pos,buff_len2);
 	memcpy(out + pos, buff, buff_len2);
 	pos += buff_len2;
+
+	free(buff);
 }
 
 // 读取分块数据
 bool read_block(unsigned char *in, int in_len, int &pos, unsigned char *out, int &out_len)
 {
 	const int buff_len = DEFAULT_BLOCK_LEN + 1024 * 6;
-	char buff[buff_len] = {0};
+	char * buff = (char*) malloc(buff_len);
 
 	int compressed_length = read_int(in, in_len, pos);
 
@@ -128,6 +130,8 @@ bool read_block(unsigned char *in, int in_len, int &pos, unsigned char *out, int
 		out_len += len;
 		pos += compressed_length;
 	}
+
+	free(buff);
 
 	return ok;
 }
