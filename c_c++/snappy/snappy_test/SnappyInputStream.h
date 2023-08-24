@@ -50,9 +50,6 @@ private:
 
 private:
 
-	// 输入流
-	std::stringstream * _stringstream;
-
 	// 是否读取到 头
 	bool		 _readHeader;
 
