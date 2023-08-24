@@ -1,0 +1,59 @@
+
+#pragma pack (push,1) 
+#pragma pack(pop)
+
+本应该成对出现。
+前段时间，发现自定义的数据结构，指针传参，在调用函数前，打印数据都是正常的，但在函数里面打印，数据就乱掉了。
+反复折腾好多小时，最后发现是数据对齐不一致导致。
+
+
+public.h
+   
+#pragma pack (push,1) 
+struct A
+{
+...
+}
+// #pragma pack(pop)  没有该行
+
+----------------------------------------------
+
+my.h
+struct B
+{
+
+}
+
+void fun(struct B * pB);
+
+---------------------------------------------
+
+my.cpp
+
+#include“my.h”
+#Inlcude “public.h"
+
+void fun(struct B * pB)
+{
+
+}
+
+-----------------------------------------------
+
+fun.cpp
+#Inlcude “public.h"
+#include“my.h”
+
+void call_fun()
+{
+    struct B * pB = ...
+   
+    fun(pB);
+}
+
+----------------------------------------------------
+
+fun.cpp 中使用1字节对齐；
+my.cpp 中 struct B 使用默认字节对齐
+当 fun.cpp 中调用 my.cpp 中 fun 函数时，对象 struct B 访问成员就会出错。
+
