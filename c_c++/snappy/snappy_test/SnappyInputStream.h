@@ -13,9 +13,9 @@
 // 3. 回调函数中  调用 read 从 iostream 读取数据，如果达到一份分块，解压返回， 多余一个分块的剩余数据 依旧写入stringstream中
 // 4. libcurl curl_easy_perform 返回，请求完成 stringstream 中还保留有未解压的数据，调用 read_last 读取最后解压数据
 
-// 1. 构造函数 传入 需要解压的输入流
-// 2. read 读取 解压 后的数据
-// 3. read_last istream 写入完成， read_last 获取最后的解压数据
+// 1. 构造函数 
+// 2. read_block 读取 解压 后的数据
+// 3. read_block_last stringstream 写入完成， read_block_last 获取最后的解压数据
 class SnappyInputStream :
 	public std::stringstream
 {
@@ -26,10 +26,13 @@ public:
 
 	// 读取解压数据 
 	// 分块压缩 data 空间 至少 大于一个分块 32k
-	// read 尽可能返回解压数据，直到空间不够
-	void read_block(unsigned char *data, int &data_len);
+	// read_block 尽可能返回解压数据，直到空间不够
+	// 返回-1  data_len 少于 32k
+	// 返回-2  压缩数据不够
+	// 返回0  成功
+	int read_block(unsigned char *data, int &data_len);
 
-	// istream 写入完成， 读取最后一块解压数据
+	// stringstream 写入完成， 读取最后一块解压数据
 	// 超过一个分块数据 返回 -1， 先循环调用 read_block， 直到 data_len = 0
 	// 实际数据小于一个分块数据 返回 -2  (数据不完整)
 	// data = NULL, 返回需要 data空间大小
@@ -38,7 +41,7 @@ public:
 	int read_block_last(unsigned char *data, int &data_len);
 
 private:
-	// 获取当前iostream中数据长度
+	// 获取当前stringstream中数据长度
 	int get_stream_data_len();
 
 	// 读取指定字节数据

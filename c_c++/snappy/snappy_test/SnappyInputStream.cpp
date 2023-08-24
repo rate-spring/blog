@@ -12,10 +12,14 @@ SnappyInputStream::~SnappyInputStream(void)
 
 }
 
+
 // 读取解压数据 
 // 分块压缩 data 空间 至少 大于一个分块 32k
-// read 尽可能返回解压数据，直到空间不够
-void SnappyInputStream::read_block(unsigned char *data, int &data_len)
+// read_block 尽可能返回解压数据，直到空间不够
+// 返回-1  data_len 少于 32k
+// 返回-2  压缩数据不够
+// 返回0  成功
+int SnappyInputStream::read_block(unsigned char *data, int &data_len)
 {
 	// 检查 stringstream 数据长度
 	int len = get_stream_data_len();
@@ -24,7 +28,7 @@ void SnappyInputStream::read_block(unsigned char *data, int &data_len)
 		if (len < SnappyStreamHelper::HEADER_LEN)
 		{
 			// 长度不够 直接返回
-			return;
+			return -2;
 		}
 
 		// 长度够 解析头
@@ -32,12 +36,20 @@ void SnappyInputStream::read_block(unsigned char *data, int &data_len)
 		int buff_len = SnappyStreamHelper::HEADER_LEN;
 		get_stream_data(buff,buff_len);
 
+		int pos = 0;
+		SnappyStreamHelper::read_header(buff,buff_len,pos,_magicHeader,_version,_compatibleVersion);
+
 		_readHeader = true;
 	}
 
 	// 读取分块数据 直到 data_len 空间不够
 	int source_data_len = data_len;
 	data_len = 0;
+
+	if (source_data_len < SnappyStreamHelper::DEFAULT_BLOCK_LEN)
+	{
+		return -1;
+	}
 
 	const int buff_len = SnappyStreamHelper::DEFAULT_BLOCK_LEN + 1024 * 6;
 	unsigned char * buff = (unsigned char *) malloc(buff_len);
@@ -69,13 +81,16 @@ void SnappyInputStream::read_block(unsigned char *data, int &data_len)
 	}
 
 	free(buff);
+
+	return 0;
 }
 
-// istream 写入完成， 读取最后一块解压数据
+// stringstream 写入完成， 读取最后一块解压数据
 // 超过一个分块数据 返回 -1， 先循环调用 read_block， 直到 data_len = 0
-// data = NULL, 返回 需要 data空间大小
-// data != NULL, data_len <  需要 data空间大小  返回该值 不填充 data
-// data != NULL, data_len >= 需要 data空间大小  返回0， 填充 data
+// 实际数据小于一个分块数据 返回 -2  (数据不完整)
+// data = NULL, 返回需要 data空间大小
+// data != NULL, data_len <  实际占用空间大小  返回该值 不填充 data
+// data != NULL, data_len >= 实际占用空间  返回0， 填充 data
 int SnappyInputStream::read_block_last(unsigned char *data, int &data_len)
 {
 	// 确定 stringstream 没有新数据写入
@@ -87,6 +102,26 @@ int SnappyInputStream::read_block_last(unsigned char *data, int &data_len)
 	if (len == 0)
 	{
 		return 0;
+	}
+
+	// 头没有读取 先读取头
+	if (!_readHeader)
+	{
+		if (len < SnappyStreamHelper::HEADER_LEN)
+		{
+			// 长度不够 直接返回
+			return -1;
+		}
+
+		// 长度够 解析头
+		unsigned char buff[64] = {0};
+		int buff_len = SnappyStreamHelper::HEADER_LEN;
+		get_stream_data(buff,buff_len);
+
+		int pos = 0;
+		SnappyStreamHelper::read_header(buff,buff_len,pos,_magicHeader,_version,_compatibleVersion);
+
+		_readHeader = true;
 	}
 
 	// 查看是否超过一个分块
@@ -102,7 +137,7 @@ int SnappyInputStream::read_block_last(unsigned char *data, int &data_len)
 		return -1;
 	}
 	
-	if (block_len < len)
+	if (block_len > len)
 	{
 		// 数据不完整 最后分块数据大于缓存区数据
 		return -2;
