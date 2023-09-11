@@ -9,7 +9,7 @@ sprintf(tmp,"file_size: %d buff_size:%d",file_size,buff_size);
 
 std::cout << tmp << std::endl;
 
-打印出来： buff_size:0
+打印出来： buff_size:1
 
 一直在查 buff_size 的值是否出错了，查了一上午，结果发现是 sprintf file_size 格式化字符串 "%d" 导致的 
 buff_size:%d 打印的是 file_size 的高32字节。
