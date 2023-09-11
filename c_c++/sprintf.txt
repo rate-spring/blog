@@ -1,0 +1,20 @@
+
+vs2010 下发现一个问题
+
+long long file_size = 0x0000000100000002;
+int buff_size = 100;
+
+char tmp[256] = {0};
+sprintf(tmp,"file_size: %d buff_size:%d",file_size,buff_size);
+
+std::cout << tmp << std::endl;
+
+打印出来： buff_size:0
+
+一直在查 buff_size 的值是否出错了，查了一上午，结果发现是 sprintf file_size 格式化字符串 "%d" 导致的 
+buff_size:%d 打印的是 file_size 的高32字节。
+
+所以，long long 打印 使用 %lld 打印，或者其值不超过32位，使用(int) file_size.
+
+教训深刻。
+
