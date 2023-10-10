@@ -1,0 +1,12 @@
+
+
+$TTL 10M
+@       IN SOA  test.com.  dnsadmin.test.com. (
+                20221015       ; serial
+                1H      ; refresh
+                5M      ; retry
+                7D      ; expire
+                1D )    ; minimum
+           IN       NS      main.test.com.
+3.79       IN       PTR     main.test.com.
+3.79       IN       PTR     fileserver.test.com.

@@ -1,0 +1,17 @@
+zone "andin.com" IN {
+
+  type master;
+
+  file "test.com.zone";
+
+  allow-update { none; };
+
+};
+
+zone "168.192.in-addr.arpa" IN {
+
+  type master;
+
+  file "168.192.loopback";
+
+};

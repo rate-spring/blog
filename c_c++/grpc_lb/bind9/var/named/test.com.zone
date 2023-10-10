@@ -1,0 +1,13 @@
+
+
+$TTL 10M
+
+@         IN      SOA     test.com.      dnsadmin.test.com. (
+                        1   ;序列号
+                        1H  ;1小时后刷新
+                        5M  ;15分钟后重试
+                        7D  ;1星期后过期
+                        1D );否定缓存TTL为1天
+              IN      NS     main
+main          IN      A      192.168.3.79
+fileserver    IN      CNAME  main

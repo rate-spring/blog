@@ -1,0 +1,90 @@
+﻿syntax = "proto3";
+
+package file;
+
+option java_package = "com.test.services.grpc.file";
+
+/* 文件上传块请求 */
+message FileUploadBlockReq
+{
+    string rid = 1;             /* 请求id */
+	string fid = 2;             /* 本地文件id */
+	string name = 3;            /* 文件名 */
+	int64  fsize  = 4;          /* 文件大小 */
+	int32  bnum  = 5;           /* 块数量 */
+	int32  bsize = 6;           /* 块大小 */
+	int32  lbsize = 7;          /* 最后一块大小 */
+	int32  bindex = 8;          /* 块索引 */
+	int32  offset = 9;          /* 块内数据偏移 */
+	int32  len  = 10;           /* 数据长度 */
+	bytes  data  = 11;          /* 块数据 */
+	int32  bfin = 12;           /* 块数据完成标志 */
+}
+
+/* 文件上传块应答*/
+message FileUploadBlockRsp
+{
+    int32  code = 1;            /* 状态码 */
+	string msg = 2;             /* 状态消息 */
+	string rid = 3;             /* 请求id */
+	string fid = 4;             /* 本地文件id*/
+	int32  bindex = 5;          /* 块索引 */
+	int32  offset = 6;          /* 块内数据偏移 */
+	int32  len  = 7;            /* 数据长度 */
+	string sbid = 8;            /* 服务端块id */
+	string sfid = 9;            /* 服务端文件id */
+}
+
+/* 文件上传块应答列表 */
+message FileUploadBlockRspList
+{
+	repeated FileUploadBlockRsp fileUploadBlockRsp = 1; 
+}
+
+/* 文件下载请求 */
+message FileDownloadReq
+{
+    string rid = 1;             /* 请求id */
+	string sfid = 2;            /* 服务端文件id */
+}
+
+/* 文件下载应答 */
+message FileDownloadRsp
+{
+    int32  code = 1;            /* 状态码 */
+	string msg = 2;             /* 状态消息 */
+	string name = 3;            /* 文件名 */
+	int64  size  = 4;           /* 文件大小 */
+	int32  bnum  = 5;           /* 块数量 */
+	int32  bsize = 6;           /* 块大小 */
+	int32  lbsize = 7;          /* 最后一块大小 */
+}
+
+
+/* 文件下载块请求 */
+message FileDownloadBlockReq
+{
+    string rid = 1;             /* 请求id */
+	string sfid = 2;            /* 服务端文件id */
+	int32  bindex = 3;          /* 块索引 */
+} 
+
+/* 文件下载块应答 */
+message FileDownloadBlockRsp
+{
+    string rid = 1;             /* 请求id */
+	bytes  data  = 2;           /* 块数据 */
+}
+
+
+service FileService
+{
+	/* 上传文件块 */
+	rpc uploadBlock(stream FileUploadBlockReq) returns (FileUploadBlockRspList);
+
+	/* 下载文件 */
+	rpc download(FileDownloadReq)  returns (FileDownloadRsp);
+
+	/* 下载文件块 */
+	rpc downloadBlock(FileDownloadBlockReq) returns (stream FileDownloadBlockRsp);
+}
